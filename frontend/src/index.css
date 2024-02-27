@@ -17,13 +17,14 @@ body{
  
 }
 
-.list-header{
+.list-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 10px;
-
+  border-bottom: 2px solid #e0dfdf; /* Add border-bottom */
 }
+
 
 .button-container{
  display: flex;
@@ -40,3 +41,49 @@ body{
   font-weight: 500;
   cursor: pointer;
 }
+
+.list-item{
+  width: 100%;
+  margin: 10px 0px;
+  font-weight: 500;
+  justify-content: space-between;
+  display: flex;
+}
+.info-container {
+  display: flex;
+  align-items: center;
+}
+
+.tick-icon {
+  margin-right: 10px;
+}
+
+.icon-container {
+  display: flex;
+  align-items: center; /* Align icons vertically in the center */
+}
+
+.edit,
+.delete {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 5px;
+  font-weight: bold; /* Make the icons bolder */
+  transition: opacity 0.3s; /* Add transition for opacity change */
+}
+
+.edit:hover,
+.delete:hover {
+  opacity: 0.7; /* Reduce opacity on hover */
+}
+
+.edit {
+  margin-right: 10px; /* Add margin between icons */
+}
+
+.edit svg,
+.delete svg {
+  margin-right: 5px;
+}
+
