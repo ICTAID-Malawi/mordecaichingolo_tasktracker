@@ -1,10 +1,15 @@
 
-function App() {
+import ListHeader from './components/ListHeader'
+import Header from './components/ListHeader'
+
+
+const App = () => {
   return (
-    <div className="App">
-     Hello World
+    <div className='app'>
+        <ListHeader ListName={'Task Tracker'}/>
     </div>
-  );
+  
+  )
 }
 
-export default App;
+export default App
