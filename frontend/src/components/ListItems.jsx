@@ -1,7 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { AiOutlineEdit, AiOutlineDelete, AiOutlineCheckCircle } from 'react-icons/ai';
+import Modal from './Modal';
 
-const ListItems = ({ task }) => {
+
+const ListItems = ({ task, getData }) => {
+    const [showModal, setShowModal]= useState(false)
     return (
         <div className="list-item">
              <div className="info-container">
@@ -10,9 +13,10 @@ const ListItems = ({ task }) => {
             </div>
 
             <div className="icon-container">
-                <button className='edit'><AiOutlineEdit /> Edit</button> {/* Edit Icon */}
+                <button className='edit' onClick={() => setShowModal(true)}><AiOutlineEdit /> Edit</button> {/* Edit Icon */}
                 <button className='delete'><AiOutlineDelete /> Delete</button> {/* Delete Icon */}
             </div>
+        {showModal && <Modal mode={'Edit'} setShowModal={setShowModal} getData={getData} task={task}/>}
         </div>
     )
 }

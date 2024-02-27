@@ -30,8 +30,8 @@ const App = () => {
 
   return (
     <div className='app'>
-        <ListHeader ListName={'Task Tracker'}/>
-        {sortedTasks?.map((task) => <ListItems key={task.id} task={task}/>)}
+        <ListHeader ListName={'Task Tracker'} getData={getData}/>
+        {sortedTasks?.map((task) => <ListItems key={task.id} task={task} getData={getData}/>)}
     </div>
   
   )
