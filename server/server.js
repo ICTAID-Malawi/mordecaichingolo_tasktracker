@@ -10,6 +10,7 @@ const pool = require('./db');
 
 app.use(cors())
 app.use(express.json())
+
 //get all tasks
 
 app.get('/tasks/:userEmail', async (req, res) => {
@@ -24,6 +25,10 @@ try{
 }
 
 });
+
+//Create a Task
+
+//Create a Task
 
 app.post('/tasks', async (req, res) => {
     const { user_email, title, date } = req.body
@@ -40,6 +45,37 @@ app.post('/tasks', async (req, res) => {
         console.error(err)
     }
 })
+
+
+//Edit a Task
+
+app.put('/tasks/:id', async (req, res) => {
+    const { id } = req.params;
+    const { user_email, title, date } = req.body;
+    try {
+        const editTask = await pool.query('UPDATE tasks SET user_email = $1, title = $2, date = $3 WHERE id = $4', [user_email, title, date, id]);
+        res.json(editTask);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: "Internal server error" });
+    }
+});
+
+app.delete('/tasks/:id', async (req, res) => {
+    const { id } = req.params;
+    try {
+        const deleteTask = await pool.query('DELETE FROM tasks WHERE id = $1', [id]);
+        if (deleteTask.rowCount === 1) {
+            res.json({ message: "Task deleted successfully" });
+        } else {
+            res.status(404).json({ message: "Task not found" });
+        }
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: "Internal server error" });
+    }
+});
+
 
 
 app.listen(PORT, () => console.log(`Server is running on ${PORT}`));

@@ -8,7 +8,7 @@ const Modal = ({ mode, setShowModal, task, getData }) => {
   const [data, setData] = useState({
     user_email: editMode ? task.user_email : 'test@gmail.com',
     title: editMode ? task.title : null,
-    date: editMode ? "" : new Date()
+    date: editMode ? (task.data) : new Date()
 
   })
 
@@ -25,6 +25,28 @@ const Modal = ({ mode, setShowModal, task, getData }) => {
       setShowModal(false)
       getData()
      }
+    } catch (err) {
+      console.error(err)
+    }
+  }
+
+  const editData = async (e) => {
+    e.preventDefault()
+    try {
+      const response = await fetch(`http://localhost:8000/tasks/${task.id}`, {
+        method : 'PUT',
+        headers : {'Content-Type' : 'application/json'},
+        body : JSON.stringify(data)
+      })
+
+      if (response.status === 200 ) {
+        setShowModal(false)
+        getData()
+      }
+    
+        
+      
+
     } catch (err) {
       console.error(err)
     }
@@ -54,7 +76,7 @@ const Modal = ({ mode, setShowModal, task, getData }) => {
           <input
             required
             maxLength={30}
-            placeholder='Task goes here'
+            placeholder='Create a Task'
             name='title'
             value={data.title}
             onChange={handleChange}
@@ -64,7 +86,7 @@ const Modal = ({ mode, setShowModal, task, getData }) => {
           <input
             className={mode}
             type="submit"
-            onClick={editMode ? '': postData}
+            onClick={editMode ? editData: postData}
             style={{
               backgroundColor: '#363636',
               color: 'white',
@@ -78,8 +100,6 @@ const Modal = ({ mode, setShowModal, task, getData }) => {
             onMouseLeave={(e) => e.target.style.opacity = '1'}
 
           />
-
-
 
         </form>
 
