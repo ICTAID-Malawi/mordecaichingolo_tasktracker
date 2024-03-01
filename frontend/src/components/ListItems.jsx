@@ -26,7 +26,7 @@ const ListItems = ({ task, getData }) => {
             </div>
             <div className="icon-container">
                 <button className='edit' onClick={() => setShowModal(true)}><AiOutlineEdit /> Edit</button> {/* Edit Icon */}
-                <button className='delete' onClick={handleDelete}><AiOutlineDelete /> Delete</button> {/* Delete Icon */}
+                <button className='delete' style={{color: '#ce4e4e'}} onClick={handleDelete}><AiOutlineDelete /> Delete</button> {/* Delete Icon */}
             </div>
             {showModal && <Modal mode={'Edit'} setShowModal={setShowModal} getData={getData} task={task} />}
         </div>

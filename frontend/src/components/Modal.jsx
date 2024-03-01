@@ -1,12 +1,14 @@
 import React from 'react'
 import { useState } from 'react'
 import { FaTimes } from 'react-icons/fa';
+import { useCookies } from 'react-cookie';
 
 const Modal = ({ mode, setShowModal, task, getData }) => {
+  const [cookies, setCookie, removeCookie] = useCookies(null)
   const editMode = mode === 'Edit' ? true : false
 
   const [data, setData] = useState({
-    user_email: editMode ? task.user_email : 'test@gmail.com',
+    user_email: editMode ? task.user_email : cookies.Email,
     title: editMode ? task.title : null,
     date: editMode ? (task.data) : new Date()
 
