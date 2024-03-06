@@ -1,109 +1,51 @@
 const express = require('express');
 const cors = require('cors');
 const { v4: uuidv4 } = require('uuid');
-const bcrypt = require('bcrypt')
-const jwt = require('jsonwebtoken')
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 const app = express();
 
-const PORT = process.env.PORT ?? 8000;
+const PORT = process.env.PORT || 8000;
 
 const pool = require('./db');
 
+app.use(cors());
+app.use(express.json());
 
-app.use(cors())
-app.use(express.json())
-
-//get all tasks
-
-app.get('/tasks/:userEmail', async (req, res) => {
-    console.log(req)
-    const {userEmail} = req.params
-
-try{
-  const tasks =  await pool.query('SELECT * FROM tasks WHERE user_email = $1', [userEmail])
-  res.json(tasks.rows)
-} catch (err) {
-    console.error(err);
-}
-
-});
-
-
-//Create a Task
-
-app.post('/tasks', async (req, res) => {
-    const { user_email, title, date } = req.body
-    console.log( user_email, title, date )
-    const id = uuidv4()
-    try{
-        const newTask = await pool.query(`INSERT INTO tasks(id, user_email, title, date) VALUES($1, $2, $3, $4)`,
-        [id, user_email, title, date])
-
-        res.json(newTask)
-
-
-    } catch (err) {
-        console.error(err)
-    }
-})
-
-
-//Edit a Task
-
-app.put('/tasks/:id', async (req, res) => {
-    const { id } = req.params;
-    const { user_email, title, date } = req.body;
-    try {
-        const editTask = await pool.query('UPDATE tasks SET user_email = $1, title = $2, date = $3 WHERE id = $4', [user_email, title, date, id]);
-        res.json(editTask);
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ message: "Internal server error" });
-    }
-});
-
-//Delete a Task
-
-app.delete('/tasks/:id', async (req, res) => {
-    const { id } = req.params;
-    try {
-        const deleteTask = await pool.query('DELETE FROM tasks WHERE id = $1', [id]);
-        if (deleteTask.rowCount === 1) {
-            res.json({ message: "Task deleted successfully" });
-        } else {
-            res.status(404).json({ message: "Task not found" });
-        }
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ message: "Internal server error" });
-    }
-});
-
-
-// Sign up
+// Sign up without email verification
 app.post('/signup', async (req, res) => {
-    const { email, password } = req.body;
+    const { email, user_name, password } = req.body;
+
+    // Simple validation
+    if (!email || !user_name || !password || password.length < 5) {
+        return res.status(400).json({ message: "Invalid email, username, or password" });
+    }
+
     const salt = bcrypt.genSaltSync(10);
     const hashedPassword = bcrypt.hashSync(password, salt);
 
     try {
-        const signUp = await pool.query(
-            'INSERT INTO users (email, hashed_password) VALUES($1, $2)',
-            [email, hashedPassword]
+        await pool.query(
+            'INSERT INTO users (email, user_name, hashed_password) VALUES($1, $2, $3)',
+            [email, user_name, hashedPassword]
         );
 
-        const token = jwt.sign({ email }, 'secret', { expiresIn: '1hr' });
-
-        res.json({ email, token });
+        res.status(201).json({ message: "Sign up successful" });
     } catch (err) {
         console.error(err);
-        res.status(500).json({ message: 'Internal server error' });
+        res.status(500).json({ message: 'Failed to sign up. Please try again later.' });
     }
 });
 
-// Log in
+/// Log in
 app.post('/login', async (req, res) => {
     const { email, password } = req.body;
+
+    // Simple validation
+    if (!email || !password || password.length < 5) {
+        return res.status(400).json({ message: "Invalid email or password" });
+    }
+
     try {
         const user = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
 
@@ -111,21 +53,136 @@ app.post('/login', async (req, res) => {
             return res.status(401).json({ message: 'Invalid email or password' });
         }
 
-        const isValidPassword = bcrypt.compareSync(password, user.rows[0].hashed_password);
+        const userData = user.rows[0];
+
+        const isValidPassword = bcrypt.compareSync(password, userData.hashed_password);
 
         if (!isValidPassword) {
             return res.status(401).json({ message: 'Invalid email or password' });
         }
 
-        const token = jwt.sign({ email: user.rows[0].email }, 'secret', { expiresIn: '1hr' });
+        const token = jwt.sign({ email: userData.email }, 'secret', { expiresIn: '1hr' });
 
-        res.json({ email: user.rows[0].email, token });
+        res.json({ email: userData.email, token });
     } catch (err) {
         console.error(err);
         res.status(500).json({ message: 'Internal server error' });
     }
 });
 
+// Get all tasks for a specific user
+app.get('/tasks/:userEmail', async (req, res) => {
+    const { userEmail } = req.params;
+
+    try {
+        const tasks = await pool.query('SELECT * FROM tasks WHERE user_email = $1', [userEmail]);
+        res.json(tasks.rows);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
+// Create a task and associated activity
+app.post('/tasks', async (req, res) => {
+    const { user_email, title, description, progress, start_date, finish_date } = req.body;
+    const taskId = uuidv4(); // Generate task ID
+    const activityDescription = 'Task created'; // Description for the activity
+
+    try {
+        await pool.query('BEGIN');
+
+        const newTask = await pool.query(
+            `INSERT INTO tasks(id, user_email, title, description, progress, start_date, finish_date) 
+            VALUES($1, $2, $3, $4, $5, $6, $7) RETURNING id`,
+            [taskId, user_email, title, description, progress, start_date, finish_date]
+        );
+
+        await pool.query(
+            `INSERT INTO activities(task_id, description) 
+            VALUES($1, $2)`,
+            [taskId, activityDescription]
+        );
+
+        await pool.query('COMMIT');
+
+        res.status(201).json({ id: newTask.rows[0].id });
+    } catch (err) {
+        await pool.query('ROLLBACK');
+        console.error(err);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
+// Edit a task
+app.put('/tasks/:id', async (req, res) => {
+    const { id } = req.params;
+    const { user_email, title, description, progress, start_date, finish_date } = req.body;
+
+    try {
+        const editTask = await pool.query('UPDATE tasks SET user_email = $1, title = $2, description = $3, progress = $4, start_date = $5, finish_date = $6 WHERE id = $7',
+            [user_email, title, description, progress, start_date, finish_date, id]);
+        res.json(editTask);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
+// Delete a task
+app.delete('/tasks/:id', async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        const deleteTask = await pool.query('DELETE FROM tasks WHERE id = $1', [id]);
+        if (deleteTask.rowCount === 1) {
+            res.json({ message: 'Task deleted successfully' });
+        } else {
+            res.status(404).json({ message: 'Task not found' });
+        }
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
+// Create an endpoint for activity creation associated with a task
+app.post('/tasks/:taskId/activities', async (req, res) => {
+    const { taskId } = req.params;
+    const { description } = req.body;
+
+    try {
+        // Check if the task with the given taskId exists
+        const task = await pool.query('SELECT * FROM tasks WHERE id = $1', [taskId]);
+        if (task.rows.length === 0) {
+            return res.status(404).json({ message: 'Task not found' });
+        }
+
+        // Insert the activity associated with the task
+        const newActivity = await pool.query(
+            `INSERT INTO activities (id, activity_title, task_id, activity_date) 
+            VALUES ($1, $2, $3, CURRENT_TIMESTAMP) RETURNING id`,
+            [uuidv4(), description, taskId]
+        );
+
+        res.status(201).json({ id: newActivity.rows[0].id });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
+// Get all activities for a specific task
+app.get('/activities/:taskId', async (req, res) => {
+    const { taskId } = req.params;
+
+    try {
+        const activities = await pool.query('SELECT * FROM activities WHERE task_id = $1', [taskId]);
+        res.json(activities.rows);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
 
 
 app.listen(PORT, () => console.log(`Server is running on ${PORT}`));

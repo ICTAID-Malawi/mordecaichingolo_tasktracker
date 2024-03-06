@@ -1,21 +1,134 @@
-body{
+body {
   margin: 0;
   padding: 0;
-  display: flex;
   justify-content: center;
   font-family: Arial, Helvetica, sans-serif;
-
+  width: 100%;
+  overflow-x: hidden;
+  
 }
 
-.app{
+.container {
+  width: 100vw;
+  height: 100vw;
+  
+  background-color: #fdfdfd;
+}
+
+.navbar {
+  background-color: #ffffff;
+  color: #363636;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 20px;
+  width: 100%; /* Set width to cover the whole screen */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Add subtle drop shadow */
+}
+
+
+.logo {
+  display: flex;
+  align-items: center;
+}
+
+.logo img {
+  width: 40px;
+  height: 40px;
+  margin-right: 10px;
+}
+
+.logo-text {
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.button-user-container {
+  display: flex;
+  align-items: center;
+}
+
+.user-info {
+  margin-right: 10px;
+}
+
+.user-info .initials {
+  background-color: #a9a9a9;
+  color: #fff;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.button-container button.signout {
+  background-color: #dc3545;
+  color: #fff;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-right: 50px;
+}
+
+.button-container button.signout:hover {
+  background-color: #c82333; /* Darker shade for hover effect */
+}
+
+.app {
   background-color: rgb(243, 243, 243);
   padding: 10px;
   border-radius: 10px;
-  margin: 10px;
-  width: 500px;
-  margin-top: 40px;
- 
+  margin: 20px auto; /* Set auto margin to center horizontally */
+  width: 50%; /* Set app width to 50% */
+  align-items: center; /* Assuming you're using this within a flex container */
 }
+
+.card {
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+  padding: 16px;
+  margin-bottom: 16px;
+  margin-top: 10px;
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+}
+
+.tick-icon {
+  margin-right: 8px;
+  color: green;
+}
+
+.card-footer {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 8px;
+}
+
+.edit,
+.delete {
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+}
+
+.edit {
+  color: #363636;
+}
+
+.delete {
+  color: #ce4e4e;
+}
+
+
 
 .list-header {
   display: flex;
@@ -148,7 +261,7 @@ input{
 }
 
 .auth-container-box {
-  width: 300px;
+  width: 400px;
   border-radius: 10px;
   overflow: hidden;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
@@ -178,7 +291,8 @@ input{
 }
 
 input[type='email'],
-input[type='password'] {
+input[type='password'],
+input[type='text'] {
   flex: 1;
   padding: 10px;
   border: none;
@@ -223,4 +337,124 @@ input[type='submit']:hover {
   background-color: #555;
 }
 
+.confirm-delete-modal {
+    position: absolute;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+    padding: 16px;
+    transition: opacity 0.3s ease-in-out;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.confirm-delete-modal.show {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.activity-container {
+ 
+}
+
+.activity-container input {
+  width: 96%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  resize: vertical; /* Allow vertical resizing */
+}
+
+.activity-container button {
+  margin-top: 10px;
+  padding: 8px 16px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.activity-container button:hover {
+  background-color: #45a049;
+}
+
+.activity-container ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+.activity-container li {
+  margin-top: 10px;
+}
+
+.activity-container li span {
+  font-weight: bold;
+}
+
+.activity-container li button {
+  margin-left: 10px;
+  padding: 5px 10px;
+  background-color: #f44336;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.activity-container li button:hover {
+  background-color: #da190b;
+}
+
+
+.footer {
+  background-color: #333;
+  color: #fff;
+  padding: 1rem;
+  margin-top: 2rem;
+  text-align: center;
+  height: 200px;
+}
+
+.footer-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  margin-bottom: 0;
+  
+}
+
+.activities{
+  display: flex;
+}
+.add-activity-button {
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+  font-weight: bold;
+}
+
+.add-activity-button:hover {
+  transform: scale(1.1);
+}
+
+.activity-button {
+  background-color: #363636;
+  border: none;
+  color: white;
+  padding: 15px 32px;
+  font-weight: bold;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 12px;
+  margin: 4px 2px;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: background-color 0.3s; /* Smooth transition for background color */
+}
+
+.activity-button:hover {
+  background-color: #555; /* Darker background color on hover */
+}
 
