@@ -70,6 +70,8 @@ app.post('/login', async (req, res) => {
     }
 });
 
+
+
 // Get all tasks for a specific user
 app.get('/tasks/:userEmail', async (req, res) => {
     const { userEmail } = req.params;
@@ -83,36 +85,32 @@ app.get('/tasks/:userEmail', async (req, res) => {
     }
 });
 
-// Create a task and associated activity
+
+// Create a task
 app.post('/tasks', async (req, res) => {
-    const { user_email, title, description, progress, start_date, finish_date } = req.body;
-    const taskId = uuidv4(); // Generate task ID
-    const activityDescription = 'Task created'; // Description for the activity
-
     try {
-        await pool.query('BEGIN');
+        const { user_email, title, description, progress, start_date, finish_date } = req.body;
 
-        const newTask = await pool.query(
-            `INSERT INTO tasks(id, user_email, title, description, progress, start_date, finish_date) 
-            VALUES($1, $2, $3, $4, $5, $6, $7) RETURNING id`,
-            [taskId, user_email, title, description, progress, start_date, finish_date]
-        );
+        // Generate UUID for the task
+        const taskId = uuidv4();
 
-        await pool.query(
-            `INSERT INTO activities(task_id, description) 
-            VALUES($1, $2)`,
-            [taskId, activityDescription]
-        );
+        // Insert task into the database
+        const insertTaskQuery = `
+            INSERT INTO tasks (id, user_email, title, description, progress, start_date, finish_date)
+            VALUES ($1, $2, $3, $4, $5, $6, $7)
+            RETURNING *
+        `;
+        const values = [taskId, user_email, title, description, progress, start_date, finish_date];
+        const result = await pool.query(insertTaskQuery, values);
+        const newTask = result.rows[0];
 
-        await pool.query('COMMIT');
-
-        res.status(201).json({ id: newTask.rows[0].id });
-    } catch (err) {
-        await pool.query('ROLLBACK');
-        console.error(err);
-        res.status(500).json({ message: 'Internal server error' });
+        res.status(201).json({ message: 'Task created successfully', task: newTask });
+    } catch (error) {
+        console.error('Error creating task:', error);
+        res.status(500).json({ error: 'Internal server error' });
     }
 });
+
 
 // Edit a task
 app.put('/tasks/:id', async (req, res) => {

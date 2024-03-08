@@ -6,10 +6,7 @@ const ConfirmDeleteModal = ({ show, onCancel, onConfirm, anchorElement }) => {
     useEffect(() => {
         if (anchorElement) {
             const rect = anchorElement.getBoundingClientRect();
-            setModalStyle({
-                top: rect.bottom + window.scrollY + 'px',
-                left: rect.left + window.scrollX + 'px'
-            });
+           
         }
     }, [anchorElement]);
 

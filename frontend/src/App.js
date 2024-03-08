@@ -4,6 +4,7 @@ import ListItems from './components/ListItems';
 import Auth from './components/Auth';
 import { useCookies } from 'react-cookie';
 import NavBar from './components/NavBar';
+import Footer from './components/Footer'
 
 const App = () => {
   const [cookies, setCookie, removeCookie] = useCookies(['Email', 'AuthToken']);
@@ -47,13 +48,14 @@ const App = () => {
         {!authToken && <Auth />}
         {authToken && (
           <>
-            <ListHeader ListName={'Task Tracker'} getData={() => getData(userEmail)} />
+            <ListHeader ListName={'TASKS'} getData={() => getData(userEmail)} />
             {sortedTasks?.map((task, index) => (
               <ListItems key={index} task={task} getData={() => getData(userEmail)} />
             ))}
           </>
         )}
       </div>
+      <Footer/>
     </div>
   );
 };

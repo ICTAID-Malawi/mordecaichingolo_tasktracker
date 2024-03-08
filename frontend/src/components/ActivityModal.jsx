@@ -43,7 +43,7 @@ const ActivityModal = ({ setShowActivityModal, fetchData, taskId }) => {
                         value={activityDate}
                         onChange={(e) => setActivityDate(e.target.value)}
                     />
-                    <button className='activity-button'onClick={handleAddActivity}>Add Activity</button>
+                    <button className='activity-button' onClick={handleAddActivity}>Add Activity</button>
                 </form>
             </div>
         </div>

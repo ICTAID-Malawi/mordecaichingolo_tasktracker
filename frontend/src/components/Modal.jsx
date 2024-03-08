@@ -1,58 +1,79 @@
 import React, { useState, useEffect } from 'react';
+import { useCookies } from 'react-cookie';
 import { FaTimes } from 'react-icons/fa';
 
 const Modal = ({ mode, setShowModal, task, getData }) => {
   const editMode = mode === 'Edit';
+  const [cookies, setCookie, removeCookie]= useCookies()
 
   const [data, setData] = useState({
-    user_email: task ? task.user_email : '',
-    title: task ? task.title : '',
-    description: task ? task.description : '',
-    progress: task ? task.progress : 0,
-    start_date: task ? task.start_date : new Date().toISOString().slice(0, 10),
-    finish_date: task ? task.finish_date : new Date().toISOString().slice(0, 10)
+    user_email: editMode ? task.user_email : cookies.Email,
+    title: '',
+    description: '',
+    progress: 0,
+    start_date: new Date().toISOString().slice(0, 10),
+    finish_date: new Date().toISOString().slice(0, 10)
   });
 
   const [fetchError, setFetchError] = useState(null);
-  const [submitting, setSubmitting] = useState(false); // For disabling submit button during submission
+  const [submitting, setSubmitting] = useState(false); 
 
   useEffect(() => {
-    if (editMode && task) {
-      // Fetch additional data if needed
+    if (task) {
+      setData({
+        user_email: task.user_email ,
+        title: task.title,
+        description: task.description,
+        progress: task.progress,
+        start_date: task.start_date,
+        finish_date: task.finish_date
+      });
     }
-  }, [editMode, task]);
+  }, [task, cookies]);
 
-  const addOrUpdateTask = async () => {
+  useEffect(() => {
+    if (!editMode) {
+      setData(prevData => ({
+        ...prevData,
+        user_email: cookies.Email || ''
+      }));
+    }
+  }, [cookies.Email, editMode]);
+
+  const postData = async (e) => {
+    e.preventDefault();
     try {
       setSubmitting(true);
-      if (editMode) {
-        // Update task
-        const response = await fetch(`http://localhost:8000/tasks/${task.id}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(data)
-        });
-        if (!response.ok) {
-          throw new Error('Failed to edit task');
-        }
-      } else {
-        // Create task
-        const response = await fetch(`http://localhost:8000/tasks`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(data)
-        });
-        if (!response.ok) {
-          throw new Error('Failed to create task');
-        }
+      const response = await fetch('http://localhost:8000/tasks', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      if (response.status === 200) {
+        setShowModal(false);
+        getData();
+        window.location.reload(); // Reload the page
       }
-      
-      setShowModal(false);
-      getData();
     } catch (err) {
       console.error(err);
-      // Show error message to the user
-      setSubmitting(false);
+    }
+  };
+
+  const editData = async (e) => {
+    e.preventDefault();
+    try {
+      const response = await fetch(`http://localhost:8000/tasks/${task.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+
+      if (response.status === 200) {
+        setShowModal(false);
+        getData();
+      }
+    } catch (err) {
+      console.error(err);
     }
   };
 
@@ -127,7 +148,7 @@ const Modal = ({ mode, setShowModal, task, getData }) => {
           <input
             className={mode}
             type="submit"
-            onClick={addOrUpdateTask}
+            onClick={editMode ? editData : postData}
             style={{
               backgroundColor: '#363636',
               color: 'white',
@@ -139,7 +160,7 @@ const Modal = ({ mode, setShowModal, task, getData }) => {
             }}
             onMouseEnter={(e) => e.target.style.opacity = '0.8'}
             onMouseLeave={(e) => e.target.style.opacity = '1'}
-            disabled={submitting} // Disable submit button during submission
+            disabled={submitting} 
           />
         </form>
       </div>

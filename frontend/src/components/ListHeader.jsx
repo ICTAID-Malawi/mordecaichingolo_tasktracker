@@ -1,3 +1,4 @@
+// ListHeader.jsx
 import React, { useState } from 'react';
 import Modal from './Modal';
 
@@ -10,7 +11,7 @@ const ListHeader = ({ ListName, getData }) => {
             <div className="button-container">
                 <button className='create' onClick={() => setShowModal(true)}>Add New</button>
             </div>
-            {showModal && <Modal mode={'Create'} setShowModal={setShowModal} getData={getData} />}
+            {showModal && <Modal mode={'Create'} setShowModal={setShowModal} getData={getData} task={null} />}
         </div>
     );
 };
