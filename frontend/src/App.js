@@ -39,18 +39,18 @@ const App = () => {
     setTasks(null);
   };
 
-  const sortedTasks = tasks?.sort((a, b) => new Date(b.date) - new Date(a.date));
+  const sortedTasks = tasks?.sort((a, b) => new Date(a.date) - new Date(b.date));
 
   return (
-    <div className='container'>
-      <NavBar initials="AB" onSignOut={handleSignOut} />
+    <div>
+      <NavBar onSignOut={handleSignOut} />
       <div className='app'>
         {!authToken && <Auth />}
         {authToken && (
           <>
             <ListHeader ListName={'TASKS'} getData={() => getData(userEmail)} />
             {sortedTasks?.map((task, index) => (
-              <ListItems key={index} task={task} getData={() => getData(userEmail)} />
+              <ListItems key={index} task={task} getData={() => getData(userEmail)} className='card-container'/>
             ))}
           </>
         )}

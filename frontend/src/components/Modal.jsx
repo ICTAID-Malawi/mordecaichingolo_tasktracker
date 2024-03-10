@@ -113,7 +113,7 @@ const Modal = ({ mode, setShowModal, task, getData }) => {
             onChange={handleChange}
           />
           <br />
-          <input
+          {/* <input
             required
             type='number'
             min='0'
@@ -122,8 +122,9 @@ const Modal = ({ mode, setShowModal, task, getData }) => {
             name='progress'
             value={data.progress}
             onChange={handleChange}
-          />
+          /> */}
           <br />
+          <p>Start Date</p>
           <input
             required
             type='date'
@@ -133,6 +134,7 @@ const Modal = ({ mode, setShowModal, task, getData }) => {
             onChange={handleChange}
           />
           <br />
+          <p>Finish Date</p>
           <input
             required
             type='date'
@@ -160,7 +162,7 @@ const Modal = ({ mode, setShowModal, task, getData }) => {
             }}
             onMouseEnter={(e) => e.target.style.opacity = '0.8'}
             onMouseLeave={(e) => e.target.style.opacity = '1'}
-            disabled={submitting} 
+            
           />
         </form>
       </div>

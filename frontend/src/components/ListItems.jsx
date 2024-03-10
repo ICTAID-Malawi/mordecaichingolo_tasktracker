@@ -16,12 +16,18 @@ const ListItems = ({ task, getData }) => {
     const [selectedActivity, setSelectedActivity] = useState(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
+    const [completedActivitiesCount, setCompletedActivitiesCount] = useState(0);
 
     useEffect(() => {
         if (task && task.id) {
             fetchActivities();
         }
     }, [task]);
+
+    useEffect(() => {
+        const completedCount = activities.filter(activity => activity.is_completed).length;
+        setCompletedActivitiesCount(completedCount);
+    }, [activities]);
 
     const fetchActivities = async () => {
         setLoading(true);
@@ -40,15 +46,15 @@ const ListItems = ({ task, getData }) => {
         }
     };
 
-    const handleDelete = async () => {
+    const handleDelete = async (activityId) => {
         try {
-            const response = await fetch(`http://localhost:8000/tasks/${task.id}`, {
+            const response = await fetch(`http://localhost:8000/activities/${activityId}`, {
                 method: 'DELETE',
             });
             if (response.ok) {
-                getData(); // Fetch updated data after deletion
+                fetchActivities(); // Fetch updated data after deletion
             } else {
-                throw new Error('Failed to delete task');
+                throw new Error('Failed to delete activity');
             }
         } catch (error) {
             setError(error.message);
@@ -66,11 +72,37 @@ const ListItems = ({ task, getData }) => {
         setShowEditModal(false);
     };
 
-    const handleSaveEditedActivity = (editedActivity) => {
-        // Make the API call to update the activity
-        // Update the activities state with the edited activity
-        // Close the modal
+    const handleSaveEditedActivity = async (editedActivity) => {
+        try {
+            const response = await fetch(`http://localhost:8000/activities/${editedActivity.id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(editedActivity),
+            });
+            if (!response.ok) {
+                throw new Error('Failed to save edited activity');
+            }
+            fetchActivities(); // Fetch updated data after editing
+        } catch (error) {
+            setError(error.message);
+        }
         setShowEditModal(false);
+    };
+
+    const handleMarkAsComplete = async (activityId) => {
+        try {
+            const response = await fetch(`http://localhost:8000/activities/${activityId}/complete`, {
+                method: 'PUT',
+            });
+            if (!response.ok) {
+                throw new Error('Failed to mark activity as complete');
+            }
+            fetchActivities(); // Fetch updated data after marking as complete
+        } catch (error) {
+            setError(error.message);
+        }
     };
 
     if (!task || !task.id) {
@@ -78,21 +110,45 @@ const ListItems = ({ task, getData }) => {
     }
 
     // Calculate progress percentage
-    const progressPercentage = task.progress + '%';
+    const totalActivitiesCount = activities.length;
+    const completedPercentage = totalActivitiesCount > 0 ? (completedActivitiesCount / totalActivitiesCount) * 100 : 0;
+    const progressPercentage = task.progress + completedPercentage + '%';
+
+    // Format dates
+    const formatDate = (dateString) => {
+        const date = new Date(dateString);
+        return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+    };
 
     return (
-        <div className="card-container">
+        <div className="card-container" style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between' }}>
             <div className="card">
                 <div className="card-header">
-                    <AiOutlineCheckCircle className="tick-icon" />
-                    <h3>
-                        Title: {task.title} - Progress: {progressPercentage}
-                    </h3>
+                    <div className="header-content">
+                        {/* <AiOutlineCheckCircle className="tick-icon" /> */}
+                        <h3>
+                            {task.title} | {progressPercentage} Complete
+                        </h3>
+                    </div>
+
+                    <div className="buttons">
+                        <button className='edit' onClick={() => setShowModal(true)}>
+                            <AiOutlineEdit /> Edit
+                        </button>
+                        <button
+                            className='delete'
+                            style={{ color: '#ce4e4e' }}
+                            onClick={() => setShowConfirmModal(true)}
+                            ref={ref => setDeleteButtonRef(ref)}
+                        >
+                            <AiOutlineDelete /> Delete
+                        </button>
+                    </div>
                 </div>
                 <div className="card-body">
-                    <p>Description: {task.description}</p>
-                    <p>Start Date: {task.start_date}</p>
-                    <p>Finish Date: {task.finish_date}</p>
+                    <p>{task.description}</p>
+                    <p>Start Date: {formatDate(task.start_date)}</p>
+                    <p>Finish Date: {formatDate(task.finish_date)}</p>
                 </div>
                 <div className="activities">
                     <h4>Activities:</h4>
@@ -115,30 +171,20 @@ const ListItems = ({ task, getData }) => {
                             {activities.map(activity => (
                                 <li key={activity.id} style={{ padding: '5px 0', borderBottom: '1px solid #ccc', display: 'flex', alignItems: 'center' }}>
                                     {activity.activity_title}
-                                    <AiOutlineEllipsis onClick={() => handleEditActivity(activity)} style={{ marginLeft: 'auto', cursor: 'pointer' }} />
+                                    {activity.is_completed && <span style={{ marginLeft: 'auto', color: 'green' }}>Completed</span>}
+                                    {!activity.is_completed && (
+                                        <AiOutlineEllipsis onClick={() => handleEditActivity(activity)} style={{ marginLeft: 'auto', cursor: 'pointer' }} />
+                                    )}
                                 </li>
                             ))}
                         </ul>
                     )}
                 </div>
-                <div className="card-footer">
-                    <button className='edit' onClick={() => setShowModal(true)}>
-                        <AiOutlineEdit /> Edit
-                    </button>
-                    <button
-                        className='delete'
-                        style={{ color: '#ce4e4e' }}
-                        onClick={() => setShowConfirmModal(true)}
-                        ref={ref => setDeleteButtonRef(ref)}
-                    >
-                        <AiOutlineDelete /> Delete
-                    </button>
-                </div>
                 {showModal && <Modal mode={'Edit'} setShowModal={setShowModal} getData={getData} task={task} />}
                 <ConfirmDeleteModal
                     show={showConfirmModal}
                     onCancel={() => setShowConfirmModal(false)}
-                    onConfirm={handleDelete}
+                    onConfirm={() => handleDelete(task.id)}
                     anchorElement={deleteButtonRef}
                 />
                 {showActivityModal && (
@@ -153,6 +199,8 @@ const ListItems = ({ task, getData }) => {
                         activity={selectedActivity}
                         onClose={handleCloseEditModal}
                         onSave={handleSaveEditedActivity}
+                        onDelete={() => handleDelete(selectedActivity.id)}
+                        onComplete={() => handleMarkAsComplete(selectedActivity.id)}
                     />
                 )}
             </div>

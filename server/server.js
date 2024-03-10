@@ -1,3 +1,5 @@
+// server.js
+
 const express = require('express');
 const cors = require('cors');
 const { v4: uuidv4 } = require('uuid');
@@ -37,7 +39,7 @@ app.post('/signup', async (req, res) => {
     }
 });
 
-/// Log in
+// Log in
 app.post('/login', async (req, res) => {
     const { email, password } = req.body;
 
@@ -70,8 +72,6 @@ app.post('/login', async (req, res) => {
     }
 });
 
-
-
 // Get all tasks for a specific user
 app.get('/tasks/:userEmail', async (req, res) => {
     const { userEmail } = req.params;
@@ -84,7 +84,6 @@ app.get('/tasks/:userEmail', async (req, res) => {
         res.status(500).json({ message: 'Internal server error' });
     }
 });
-
 
 // Create a task
 app.post('/tasks', async (req, res) => {
@@ -110,7 +109,6 @@ app.post('/tasks', async (req, res) => {
         res.status(500).json({ error: 'Internal server error' });
     }
 });
-
 
 // Edit a task
 app.put('/tasks/:id', async (req, res) => {
@@ -169,6 +167,7 @@ app.post('/tasks/:taskId/activities', async (req, res) => {
         res.status(500).json({ message: 'Internal server error' });
     }
 });
+
 // Get all activities for a specific task
 app.get('/activities/:taskId', async (req, res) => {
     const { taskId } = req.params;
@@ -182,5 +181,48 @@ app.get('/activities/:taskId', async (req, res) => {
     }
 });
 
+// Edit an activity
+app.put('/activities/:id', async (req, res) => {
+    const { id } = req.params;
+    const { activity_title } = req.body;
+
+    try {
+        const editActivity = await pool.query('UPDATE activities SET activity_title = $1 WHERE id = $2', [activity_title, id]);
+        res.json(editActivity);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
+// Delete an activity
+app.delete('/activities/:id', async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        const deleteActivity = await pool.query('DELETE FROM activities WHERE id = $1', [id]);
+        if (deleteActivity.rowCount === 1) {
+            res.json({ message: 'Activity deleted successfully' });
+        } else {
+            res.status(404).json({ message: 'Activity not found' });
+        }
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
+// Mark an activity as complete
+app.put('/activities/:id/complete', async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        const completeActivity = await pool.query('UPDATE activities SET is_completed = true WHERE id = $1', [id]);
+        res.json(completeActivity);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
 
 app.listen(PORT, () => console.log(`Server is running on ${PORT}`));

@@ -1,30 +1,31 @@
 import React, { useEffect, useState } from 'react';
 import { useCookies } from 'react-cookie';
+import { FiUser } from 'react-icons/fi'; // Import the user icon from react-icons
 
 const NavBar = ({ onSignOut }) => {
-  const [initials, setInitials] = useState('');
+  const [profilePic, setProfilePic] = useState('');
   const [cookies, setCookie, removeCookie] = useCookies(['AuthToken']);
 
   useEffect(() => {
-    const fetchInitials = async () => {
+    const fetchProfilePic = async () => {
       try {
-        const response = await fetch('http://localhost:8000/user', {
+        const response = await fetch('http://localhost:8000/user/profile-pic', {
           headers: {
-            Authorization: `Bearer ${cookies.AuthToken}` // Use cookies instead of localStorage
+            Authorization: `Bearer ${cookies.AuthToken}`
           }
         });
         if (!response.ok) {
-          throw new Error('Failed to fetch user initials');
+          throw new Error('Failed to fetch profile picture');
         }
         const data = await response.json();
-        setInitials(data.initials);
+        setProfilePic(data.profilePicUrl);
       } catch (error) {
         console.error(error);
       }
     };
 
     if (cookies.AuthToken) {
-      fetchInitials();
+      fetchProfilePic();
     }
   }, [cookies.AuthToken]);
 
@@ -36,7 +37,11 @@ const NavBar = ({ onSignOut }) => {
       {cookies.AuthToken ? (
         <div className="button-user-container">
           <div className="user-info">
-            <span className="initials">{initials}</span>
+            {profilePic ? (
+              <img src={profilePic} alt="Profile" className="profile-pic" />
+            ) : (
+              <FiUser className="user-icon" />
+            )}
           </div>
           <div className="button-container">
             <button className="signout" onClick={onSignOut}>Sign Out</button>
@@ -44,7 +49,7 @@ const NavBar = ({ onSignOut }) => {
         </div>
       ) : (
         <div className="button-container">
-          <button className="login-button" >Log In</button>
+          
         </div>
       )}
     </nav>

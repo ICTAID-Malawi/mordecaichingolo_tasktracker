@@ -1,3 +1,5 @@
+// EditActivityModal.js
+
 import React, { useState } from 'react';
 
 const EditActivityModal = ({ activity, onClose, onDelete, onComplete, onSave }) => {
