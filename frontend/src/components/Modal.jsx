@@ -49,17 +49,18 @@ const Modal = ({ mode, setShowModal, task, getData }) => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)
       });
-      if (response.status === 200) {
-        setShowModal(false);
-        getData();
-        window.location.reload(); // Reload the page
+      if (response.status === 201) {
+        setShowModal(false); // Close the modal
+        getData(); // Update the task list
       }
     } catch (err) {
       console.error(err);
+    } finally {
+      setSubmitting(false);
     }
   };
 
-  const editData = async (e) => {
+const editData = async (e) => {
     e.preventDefault();
     try {
       const response = await fetch(`http://localhost:8000/tasks/${task.id}`, {
@@ -69,13 +70,14 @@ const Modal = ({ mode, setShowModal, task, getData }) => {
       });
 
       if (response.status === 200) {
-        setShowModal(false);
-        getData();
+        setShowModal(false); // Close the modal
+        getData(); // Update the task list
       }
     } catch (err) {
       console.error(err);
     }
   };
+
 
   const handleChange = (e) => {
     const { name, value } = e.target;

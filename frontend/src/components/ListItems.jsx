@@ -24,6 +24,23 @@ const ListItems = ({ task, getData }) => {
         }
     }, [task]);
 
+    const handleDeleteTask = async () => {
+        try {
+            const response = await fetch(`http://localhost:8000/tasks/${task.id}`, {
+                method: 'DELETE',
+            });
+            if (response.ok) {
+                // If the task is successfully deleted, trigger the getData callback to refresh the task list
+                getData();
+            } else {
+                throw new Error('Failed to delete task');
+            }
+        } catch (error) {
+            setError(error.message);
+        }
+        setShowConfirmModal(false);
+    };
+
     useEffect(() => {
         const completedCount = activities.filter(activity => activity.is_completed).length;
         setCompletedActivitiesCount(completedCount);
@@ -144,7 +161,9 @@ const ListItems = ({ task, getData }) => {
                             <AiOutlineDelete /> Delete
                         </button>
                     </div>
+                    
                 </div>
+                
                 <div className="card-body">
                     <p>{task.description}</p>
                     <p>Start Date: {formatDate(task.start_date)}</p>
@@ -162,6 +181,7 @@ const ListItems = ({ task, getData }) => {
                     padding: '10px',
                     marginTop: '-10px', // Move the div up by 10 pixels
                 }}>
+                    
                     {loading ? (
                         <p style={{ margin: '0', padding: '10px' }}>Loading activities...</p>
                     ) : error ? (
@@ -180,13 +200,17 @@ const ListItems = ({ task, getData }) => {
                         </ul>
                     )}
                 </div>
+
+                
+                
                 {showModal && <Modal mode={'Edit'} setShowModal={setShowModal} getData={getData} task={task} />}
                 <ConfirmDeleteModal
                     show={showConfirmModal}
                     onCancel={() => setShowConfirmModal(false)}
-                    onConfirm={() => handleDelete(task.id)}
+                    onConfirm={handleDeleteTask} 
                     anchorElement={deleteButtonRef}
                 />
+               
                 {showActivityModal && (
                     <ActivityModal
                         setShowActivityModal={setShowActivityModal}
@@ -203,6 +227,7 @@ const ListItems = ({ task, getData }) => {
                         onComplete={() => handleMarkAsComplete(selectedActivity.id)}
                     />
                 )}
+                
             </div>
         </div>
     );

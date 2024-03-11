@@ -32,20 +32,20 @@ const Auth = ({ onSignout }) => {
             setError('Passwords do not match');
             return;
         }
-
+    
         try {
             const data = {
                 email,
                 password,
                 user_name: userName // Include user_name in the data sent to the server
             };
-
+    
             const response = await fetch(`http://localhost:8000/${endpoint}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data)
             });
-
+    
             if (response.ok) {
                 const responseData = await response.json();
                 setCookie('Email', responseData.email);
@@ -53,13 +53,18 @@ const Auth = ({ onSignout }) => {
                 window.location.reload();
             } else {
                 const responseData = await response.json();
-                setError(responseData.message || 'Invalid Email or Password');
+                if (responseData.message === 'Email not verified. Please check your email for verification instructions.') {
+                    setError(responseData.message);
+                } else {
+                    setError(responseData.message || 'Invalid Email or Password');
+                }
             }
         } catch (err) {
             console.error('Error:', err);
             setError('Invalid Email or Password');
         }
     };
+    
 
     return (
         <div className='auth-container'>
