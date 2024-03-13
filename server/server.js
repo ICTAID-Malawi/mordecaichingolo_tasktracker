@@ -13,7 +13,7 @@ const pool = require('./db');
 app.use(cors());
 app.use(express.json());
 
-// Email configuration (use your own SMTP settings)
+// Email configuration
 const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
@@ -27,10 +27,21 @@ const transporter = nodemailer.createTransport({
 
 async function sendVerificationEmail(email, token) {
     const mailOptions = {
-        from: 'your_email@gmail.com', // Replace with your Gmail address
-        to: email,
+        from: 'chingolo265@gmail.com', 
+        to: email, // Add the recipient's email address here
         subject: 'Email Verification',
-        html: `<p>Please click <a href="http://localhost:8000/verify/${token}">here</a> to verify your email.</p>`
+        html: `
+            <div style="font-family: Arial, sans-serif; padding: 20px;">
+                <h2 style="color: #333;">Verify your Email!</h2>
+                <p style="color: #666;">Thank you for registering an account with us. To complete your registration, please verify your email address by clicking the link below:</p>
+                <p style="margin-top: 20px;">
+                    <a href="http://localhost:8000/verify/${token}" style="background-color: #007bff; color: #fff; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Verify Email Address</a>
+                </p>
+                <p style="color: #666;">If you did not create an account, you can safely ignore this email.</p>
+                <hr style="border: 1px solid #ccc; margin-top: 40px; margin-bottom: 20px;">
+                <p style="font-size: 12px; color: #999;">This email was sent automatically. Please do not reply to this email.</p>
+            </div>
+        `
     };
 
     try {
@@ -42,14 +53,16 @@ async function sendVerificationEmail(email, token) {
     }
 }
 
+
 // Sign up with email verification
 app.post('/signup', async (req, res) => {
     const { email, user_name, password } = req.body;
 
-    // Simple validation
-    if (!email || !user_name || !password || password.length < 5) {
-        return res.status(400).json({ message: "Invalid email, username, or password" });
-    }
+ // Simple validation
+const alphanumericRegex = /^(?=.*[a-zA-Z])(?=.*[0-9])[a-zA-Z0-9]{8,}$/; // Regex for alphanumeric and minimum 8 characters
+if (!email || !user_name || !password || !alphanumericRegex.test(password)) {
+    return res.status(400).json({ message: "Invalid email, username, or password. Password must be alphanumeric and have a minimum length of 8 characters" });
+}
 
     try {
         // Check if the email is already registered
@@ -107,7 +120,7 @@ app.get('/verify/:token', async (req, res) => {
         res.status(500).json({ message: 'Failed to verify email. Please try again later.' });
     }
 });
-// Log in
+
 // Log in
 app.post('/login', async (req, res) => {
     const { email, password } = req.body;
@@ -223,7 +236,7 @@ app.delete('/tasks/:id', async (req, res) => {
 });
 
 
-// Create an endpoint for activity creation associated with a task
+//endpoint for activity creation associated with a task
 app.post('/tasks/:taskId/activities', async (req, res) => {
     const { taskId } = req.params;
     const { description } = req.body;

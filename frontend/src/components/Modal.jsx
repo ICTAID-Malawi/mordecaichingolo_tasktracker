@@ -4,10 +4,10 @@ import { FaTimes } from 'react-icons/fa';
 
 const Modal = ({ mode, setShowModal, task, getData }) => {
   const editMode = mode === 'Edit';
-  const [cookies, setCookie, removeCookie]= useCookies()
+  const [cookies] = useCookies();
 
   const [data, setData] = useState({
-    user_email: editMode ? task.user_email : cookies.Email,
+    user_email: editMode ? task.user_email : cookies.Email || '',
     title: '',
     description: '',
     progress: 0,
@@ -17,6 +17,7 @@ const Modal = ({ mode, setShowModal, task, getData }) => {
 
   const [fetchError, setFetchError] = useState(null);
   const [submitting, setSubmitting] = useState(false); 
+  const [errors, setErrors] = useState({});
 
   useEffect(() => {
     if (task) {
@@ -31,17 +32,30 @@ const Modal = ({ mode, setShowModal, task, getData }) => {
     }
   }, [task, cookies]);
 
-  useEffect(() => {
-    if (!editMode) {
-      setData(prevData => ({
-        ...prevData,
-        user_email: cookies.Email || ''
-      }));
+  const validateForm = () => {
+    const newErrors = {};
+
+    if (!data.title.trim()) {
+      newErrors.title = 'Title is required';
     }
-  }, [cookies.Email, editMode]);
+
+    if (!data.description.trim()) {
+      newErrors.description = 'Description is required';
+    }
+
+    // Add more validation rules as needed
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const postData = async (e) => {
     e.preventDefault();
+
+    if (!validateForm()) {
+      return;
+    }
+
     try {
       setSubmitting(true);
       const response = await fetch('http://localhost:8000/tasks', {
@@ -60,7 +74,7 @@ const Modal = ({ mode, setShowModal, task, getData }) => {
     }
   };
 
-const editData = async (e) => {
+  const editData = async (e) => {
     e.preventDefault();
     try {
       const response = await fetch(`http://localhost:8000/tasks/${task.id}`, {
@@ -78,12 +92,15 @@ const editData = async (e) => {
     }
   };
 
-
   const handleChange = (e) => {
     const { name, value } = e.target;
     setData(prevData => ({
       ...prevData,
       [name]: value
+    }));
+    setErrors(prevErrors => ({
+      ...prevErrors,
+      [name]: ''
     }));
   };
 
@@ -106,6 +123,7 @@ const editData = async (e) => {
             value={data.title}
             onChange={handleChange}
           />
+          {errors.title && <div className="error">{errors.title}</div>}
           <input
             required
             maxLength={255}
@@ -114,17 +132,7 @@ const editData = async (e) => {
             value={data.description}
             onChange={handleChange}
           />
-          <br />
-          {/* <input
-            required
-            type='number'
-            min='0'
-            max='100'
-            placeholder='Enter Progress (0-100)'
-            name='progress'
-            value={data.progress}
-            onChange={handleChange}
-          /> */}
+          {errors.description && <div className="error">{errors.description}</div>}
           <br />
           <p>Start Date</p>
           <input
@@ -164,7 +172,6 @@ const editData = async (e) => {
             }}
             onMouseEnter={(e) => e.target.style.opacity = '0.8'}
             onMouseLeave={(e) => e.target.style.opacity = '1'}
-            
           />
         </form>
       </div>

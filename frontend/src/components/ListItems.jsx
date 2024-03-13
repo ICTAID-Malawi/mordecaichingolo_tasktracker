@@ -3,7 +3,7 @@ import { AiOutlineEdit, AiOutlineDelete, AiOutlineCheckCircle, AiOutlineEllipsis
 import Modal from './Modal';
 import ConfirmDeleteModal from './ConfirmDeleteModal';
 import ActivityModal from './ActivityModal';
-import EditActivityModal from './EditActivityModal'; // Import EditActivityModal
+import EditActivityModal from './EditActivityModal'; 
 import { FaPlus } from 'react-icons/fa';
 
 const ListItems = ({ task, getData }) => {
@@ -127,18 +127,31 @@ const ListItems = ({ task, getData }) => {
     }
 
     // Calculate progress percentage
-    const totalActivitiesCount = activities.length;
-    const completedPercentage = totalActivitiesCount > 0 ? (completedActivitiesCount / totalActivitiesCount) * 100 : 0;
-    const progressPercentage = task.progress + completedPercentage + '%';
+const totalActivitiesCount = activities.length;
+const completedPercentage = totalActivitiesCount > 0 ? (completedActivitiesCount / totalActivitiesCount) * 100 : 0;
 
-    // Format dates
-    const formatDate = (dateString) => {
-        const date = new Date(dateString);
-        return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
-    };
+// Round the progress percentage to two decimal points
+const roundedCompletedPercentage = completedPercentage.toFixed(2);
+
+// Calculate total progress percentage including the task's progress
+const totalProgressPercentage = parseFloat(task.progress) + parseFloat(roundedCompletedPercentage);
+const roundedTotalProgressPercentage = totalProgressPercentage.toFixed(2);
+
+// Convert the total progress percentage to a string with '%' appended
+const progressPercentage = roundedTotalProgressPercentage + '%';
+
+
+// Format dates
+const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    const year = date.getFullYear();
+    const month = (date.getMonth() + 1).toString().padStart(2, '0'); // Adding 1 because month indexes start from 0
+    const day = date.getDate().toString().padStart(2, '0');
+    return `${year}-${month}-${day}`;
+};
 
     return (
-        <div className="card-container" style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between' }}>
+        <div className="card-container" >
             <div className="card">
                 <div className="card-header">
                     <div className="header-content">
@@ -179,7 +192,7 @@ const ListItems = ({ task, getData }) => {
                     border: '1px solid #ccc',
                     borderRadius: '5px',
                     padding: '10px',
-                    marginTop: '-10px', // Move the div up by 10 pixels
+                    marginTop: '-10px', 
                 }}>
                     
                     {loading ? (
@@ -230,6 +243,8 @@ const ListItems = ({ task, getData }) => {
                 
             </div>
         </div>
+
+       
     );
 };
 
